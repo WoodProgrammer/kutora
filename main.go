@@ -1,7 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
+
+	_ "github.com/mattn/go-sqlite3"
 
 	handlers "github.com/WoodProgrammer/handlers"
 	runbook "github.com/WoodProgrammer/runbook"
@@ -10,7 +12,12 @@ import (
 )
 
 func newDBClient() runbook.DB {
-	return &runbook.DBClient{}
+	db, err := sql.Open("sqlite3", "runbooks.db")
+	if err != nil {
+		return nil
+	}
+
+	return &runbook.DBClient{Dao: db}
 }
 
 func newKutoraAPIClient(db runbook.DB) handlers.KutoraAPI {
@@ -21,7 +28,6 @@ func main() {
 	dbClient := newDBClient()
 	kutoraHandler := newKutoraAPIClient(dbClient)
 
-	fmt.Println("The Kutora API v0.0.1")
 	router := gin.Default()
 	router.GET("/runbooks", kutoraHandler.GetKutoraRunbooks)
 	router.Run()

@@ -16,6 +16,10 @@ type KutoraAPIHandler struct {
 }
 
 func (k *KutoraAPIHandler) GetKutoraRunbooks(c *gin.Context) {
-	result := k.DbClient.GetRunBooks()
+	result, err := k.DbClient.GetRunBooks()
+	if err != nil {
+
+		return
+	}
 	fmt.Println(result)
 }

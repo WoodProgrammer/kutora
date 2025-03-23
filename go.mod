@@ -10,6 +10,7 @@ require (
 	github.com/WoodProgrammer/handlers v0.0.0-00010101000000-000000000000
 	github.com/WoodProgrammer/runbook v0.0.0-00010101000000-000000000000
 	github.com/gin-gonic/gin v1.10.0
+	github.com/mattn/go-sqlite3 v1.14.24
 )
 
 require (
