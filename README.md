@@ -1,4 +1,4 @@
-# raft-go 
+# raft-go 
 
 :warning: This repo is still under development.
 
