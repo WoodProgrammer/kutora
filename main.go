@@ -1,32 +1,24 @@
 package main
 
 import (
-	"time"
+	"os"
 
 	serv "github.com/WoodProgrammer/kutora-queue/tcp"
-	"github.com/rs/zerolog/log"
 )
 
-var INTERVAL = 10
+var INTERVAL = 1
 var MemberList = []string{}
 
-func voteMember(memberList *[]string) {
-
-}
-
 func main() {
+	port := os.Getenv("RAFT_PORT")
+	host := os.Getenv("RAFT_HOST")
+	memberId := os.Getenv("MEMBER_ID")
 
 	raftMember := serv.AppendLogEntry{
-		MemberId: "member-1",
+		MemberId:       memberId,
+		CommandChannel: make(chan string),
 	}
-	go raftMember.RunServer()
-	for {
-		go func() {
-			command := <-raftMember.CommandChannel
-			log.Info().Msgf("The term count is %s", command)
-		}()
-		log.Info().Msgf("The member : %s is available", raftMember.MemberId)
-		time.Sleep(time.Second * time.Duration(INTERVAL))
-	}
+	go raftMember.RunServer(host, port)
 
+	select {}
 }
