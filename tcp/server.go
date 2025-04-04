@@ -8,11 +8,12 @@ import (
 	"sync"
 )
 
-type AppendLogEntry struct {
+type Node struct {
 	MemberId       string
 	LogEntry       LogEntry
-	Leader         bool
+	State          string
 	CommandChannel chan string
+	MemberList     []string
 	mtex           sync.Mutex
 }
 
@@ -21,7 +22,7 @@ type LogEntry struct {
 	Term    int
 }
 
-func (node *AppendLogEntry) handleConnection(c net.Conn) {
+func (node *Node) handleConnection(c net.Conn) {
 	fmt.Printf("Serving %s\n", c.RemoteAddr().String())
 	for {
 		netData, err := bufio.NewReader(c).ReadString('\n')
@@ -32,7 +33,7 @@ func (node *AppendLogEntry) handleConnection(c net.Conn) {
 
 		temp := strings.TrimSpace(string(netData))
 		fmt.Printf("command is %s\n", temp)
-		if temp == "SETX" {
+		if temp == "BREAK" {
 			break
 		}
 
@@ -43,7 +44,7 @@ func (node *AppendLogEntry) handleConnection(c net.Conn) {
 	c.Close()
 }
 
-func (node *AppendLogEntry) processRequests() {
+func (node *Node) processRequests() {
 
 	for cmd := range node.CommandChannel {
 		node.mtex.Lock()
@@ -53,7 +54,7 @@ func (node *AppendLogEntry) processRequests() {
 	}
 }
 
-func (node *AppendLogEntry) RunServer(host, port string) {
+func (node *Node) RunServer(host, port string) {
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%s", host, port))
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -64,13 +65,12 @@ func (node *AppendLogEntry) RunServer(host, port string) {
 	fmt.Println("Server is listening on port 8080")
 	go node.processRequests()
 	for {
-		// Accept incoming connections
 		conn, err := listener.Accept()
 		if err != nil {
 			fmt.Println("Error:", err)
 			continue
 		}
-		// Handle client connection in a goroutine
 		go node.handleConnection(conn)
+
 	}
 }
