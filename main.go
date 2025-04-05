@@ -13,10 +13,13 @@ var MemberList = []string{}
 func main() {
 	port := os.Getenv("RAFT_PORT")
 	host := os.Getenv("RAFT_HOST")
+	state := os.Getenv("RAFT_STATE")
+
 	memberId := os.Getenv("RAFT_MEMBER_ID")
 	log.Info().Msgf("The raft member is starting ... %s:%s -- memberId: %s", host, port, memberId)
 	raftMember := serv.Node{
 		MemberId:       memberId,
+		State:          state,
 		CommandChannel: make(chan string),
 	}
 	go raftMember.RunServer(host, port)

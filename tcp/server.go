@@ -1,7 +1,6 @@
 package tcp
 
 import (
-	"bufio"
 	"fmt"
 	"net"
 	"strings"
@@ -23,25 +22,25 @@ type LogEntry struct {
 }
 
 func (node *Node) handleConnection(c net.Conn) {
-	fmt.Printf("Serving %s\n", c.RemoteAddr().String())
+
+	defer c.Close()
+
+	// Create a buffer to read data into
+	buffer := make([]byte, 1024)
+
 	for {
-		netData, err := bufio.NewReader(c).ReadString('\n')
+		// Read data from the client
+		n, err := c.Read(buffer)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Error:", err)
 			return
 		}
-
-		temp := strings.TrimSpace(string(netData))
-		fmt.Printf("command is %s\n", temp)
-		if temp == "BREAK" {
-			break
-		}
-
+		temp := strings.TrimSpace(string(buffer[:n]))
 		node.CommandChannel <- temp
-		c.Write([]byte(string("ok")))
+		// Process and use the data (here, we'll just print it)
+		fmt.Printf("Received: %s\n", buffer[:n])
 	}
 
-	c.Close()
 }
 
 func (node *Node) processRequests() {
@@ -51,6 +50,12 @@ func (node *Node) processRequests() {
 		node.LogEntry.Term = node.LogEntry.Term + 1
 		node.LogEntry.Command = append(node.LogEntry.Command, cmd)
 		node.mtex.Unlock()
+		if node.State == "leader" {
+			fmt.Println("replicating", cmd)
+			node.TcpClient(cmd, "localhost:8081")
+		} else {
+			fmt.Println("ignore", cmd)
+		}
 	}
 }
 
